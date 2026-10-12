@@ -17,23 +17,29 @@ const grid = document.getElementById("grid");
 const countEl = document.getElementById("count");
 
 function getFiltered() {
-  let result = products;
-  const search = searchInput.value;
+  let result = [...products];
+
+  const search = searchInput.value.trim().toLowerCase();
   const category = categorySelect.value;
   const sort = sortSelect.value;
 
+  // Search by part of the name, ignoring letter case.
   if (search) {
-    result = result.filter((p) => p.name === search);
+    result = result.filter((p) =>
+      p.name.toLowerCase().includes(search)
+    );
   }
 
+  // Filter by category.
   if (category !== "all") {
-    result = products.filter((p) => p.category !== category);
+    result = result.filter((p) => p.category === category);
   }
 
+  // Sort by price.
   if (sort === "asc") {
-    result.sort((a, b) => b.price - a.price);
-  } else if (sort === "desc") {
     result.sort((a, b) => a.price - b.price);
+  } else if (sort === "desc") {
+    result.sort((a, b) => b.price - a.price);
   }
 
   return result;
@@ -41,19 +47,40 @@ function getFiltered() {
 
 function render() {
   const items = getFiltered();
+
+  // Remove old cards before rendering new ones.
+  grid.innerHTML = "";
+
   items.forEach((p) => {
     const card = document.createElement("div");
     card.className = "card";
-    card.innerHTML = `<h3>${p.name}</h3><p class="cat">${p.category}</p><p class="price">$${p.price}</p>`;
+
+    card.innerHTML = `
+      <h3>${p.name}</h3>
+      <p class="cat">${p.category}</p>
+      <p class="price">$${p.price}</p>
+    `;
+
     grid.appendChild(card);
   });
-  countEl.textContent = products.length;
+
+  // Show the number of matching products.
+  countEl.textContent = items.length;
+}
+
+function resetFilters() {
+  searchInput.value = "";
+  categorySelect.value = "all";
+  sortSelect.value = "default";
+
+  render();
 }
 
 searchInput.addEventListener("input", render);
 categorySelect.addEventListener("change", render);
 sortSelect.addEventListener("change", render);
+resetBtn.addEventListener("click", resetFilters);
 
-resetBtn.addEventListener("click", () => {
-  searchInput.value = "";
-});
+// Display all products when the page loads.
+render();
+
